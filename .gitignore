@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Build artifacts
+build/
+dist/
+*.spec
+*.egg-info/
+
+# OS
+Thumbs.db
