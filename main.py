@@ -33,10 +33,10 @@ def get_active_window_info(exclude_hwnd=None):
         return None
 
 
-class WindowHackApp:
+class WintrackerApp:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("WindowHack - 窗口信息查看器")
+        self.root.title("Wintracker - 窗口信息查看器")
         self.root.geometry("600x400")
         self.root.minsize(400, 300)
         
@@ -45,9 +45,11 @@ class WindowHackApp:
         self.my_hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
         
         # 置顶状态
-        self.is_topmost = False
+        self.is_topmost = True
         
         self.setup_ui()
+        # 初始化置顶
+        self.apply_topmost()
         self.setup_update_timer()
     
     def setup_ui(self):
@@ -116,10 +118,8 @@ class WindowHackApp:
         )
         self.status_label.pack(fill=tk.X)
     
-    def toggle_topmost(self):
-        """切换置顶状态"""
-        self.is_topmost = not self.is_topmost
-        
+    def apply_topmost(self):
+        """应用置顶状态"""
         if self.is_topmost:
             # 设置窗口置顶但不抢焦点
             self.root.attributes('-topmost', True)
@@ -142,6 +142,11 @@ class WindowHackApp:
                 self.my_hwnd, -2, 0, 0, 0, 0,
                 0x0001 | 0x0002 | 0x0010  # SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE
             )
+    
+    def toggle_topmost(self):
+        """切换置顶状态"""
+        self.is_topmost = not self.is_topmost
+        self.apply_topmost()
     
     def update_info(self):
         """更新窗口信息"""
@@ -174,5 +179,5 @@ class WindowHackApp:
 
 
 if __name__ == "__main__":
-    app = WindowHackApp()
+    app = WintrackerApp()
     app.run()
