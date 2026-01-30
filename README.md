@@ -1,4 +1,4 @@
-# WindowHack
+# Wintracker
 一个用于查看当前活动窗口信息的 Windows 工具，支持右键菜单。
 
 <img width="304" height="182" alt="image" src="https://github.com/user-attachments/assets/c2429ca3-3a00-4212-b2b5-0c2896b0a7aa" />
