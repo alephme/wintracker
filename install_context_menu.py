@@ -16,8 +16,37 @@ def is_admin():
         return False
 
 
+def elevate_if_needed():
+    """如无管理员权限则触发 UAC 提权并退出当前进程"""
+    if is_admin():
+        return True
+
+    if getattr(sys, 'frozen', False):
+        exe = sys.executable
+        params = " ".join(f'"{arg}"' for arg in sys.argv[1:])
+    else:
+        exe = sys.executable
+        script = os.path.abspath(__file__)
+        params = " ".join([f'"{script}"'] + [f'"{arg}"' for arg in sys.argv[1:]])
+
+    result = ctypes.windll.shell32.ShellExecuteW(
+        None,
+        "runas",
+        exe,
+        params,
+        None,
+        1,
+    )
+
+    if result <= 32:
+        print("❌ 无法获取管理员权限或已取消")
+        return False
+
+    sys.exit(0)
+
+
 def get_exe_path():
-    """获取 wintracker.xexe 文件路径"""
+    """获取 wintracker.exe 文件路径"""
     # 如果是打包后的 exe，查找同目录下的 wintracker.exe
     if getattr(sys, 'frozen', False):
         exe_dir = os.path.dirname(sys.executable)
@@ -51,31 +80,31 @@ def install_context_menu():
         # Windows 11 使用新的右键菜单系统
         # 需要在 HKEY_CLASSES_ROOT\*\shell 下添加
         
-        # 为所有文件添加右键菜单
-        key_path = r"*\shell\wintracker"
+        # # 为所有文件添加右键菜单
+        # key_path = r"*\shell\wintracker"
         
-        # 创建主键
-        key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
-        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "查看窗口信息 (wintracker)")
-        winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, exe_path)
-        winreg.CloseKey(key)
+        # # 创建主键
+        # key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
+        # winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "查看窗口信息 (wintracker)")
+        # winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, exe_path)
+        # winreg.CloseKey(key)
         
-        # 创建 command 子键
-        cmd_key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path + r"\command")
-        winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{exe_path}"')
-        winreg.CloseKey(cmd_key)
+        # # 创建 command 子键
+        # cmd_key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path + r"\command")
+        # winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{exe_path}"')
+        # winreg.CloseKey(cmd_key)
         
-        # 为目录添加右键菜单
-        dir_key_path = r"Directory\shell\wintracker"
+        # # 为目录添加右键菜单
+        # dir_key_path = r"Directory\shell\wintracker"
         
-        key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, dir_key_path)
-        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "查看窗口信息 (wintracker)")
-        winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, exe_path)
-        winreg.CloseKey(key)
+        # key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, dir_key_path)
+        # winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "查看窗口信息 (wintracker)")
+        # winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, exe_path)
+        # winreg.CloseKey(key)
         
-        cmd_key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, dir_key_path + r"\command")
-        winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{exe_path}"')
-        winreg.CloseKey(cmd_key)
+        # cmd_key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, dir_key_path + r"\command")
+        # winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{exe_path}"')
+        # winreg.CloseKey(cmd_key)
         
         # 为目录背景添加右键菜单
         bg_key_path = r"Directory\Background\shell\wintracker"
@@ -119,8 +148,8 @@ def uninstall_context_menu():
     """卸载右键菜单项"""
     try:
         paths = [
-            r"*\shell\wintracker",
-            r"Directory\shell\wintracker",
+            # r"*\shell\wintracker",
+            # r"Directory\shell\wintracker",
             r"Directory\Background\shell\wintracker",
             r"DesktopBackground\shell\wintracker",
         ]
@@ -154,9 +183,7 @@ def main():
     print("wintracker 右键菜单安装工具")
     print("=" * 50)
     
-    if not is_admin():
-        print("\n⚠️  需要管理员权限!")
-        print("请右键点击此程序，选择 '以管理员身份运行'")
+    if not elevate_if_needed():
         input("\n按回车键退出...")
         return
     
