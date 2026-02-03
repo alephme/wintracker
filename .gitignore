@@ -13,3 +13,9 @@ dist/
 
 # OS
 Thumbs.db
+
+# ICON原图
+icon_pre/
+
+#安装包
+Setup/
